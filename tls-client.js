@@ -28,4 +28,12 @@ conn.on("data", function (data) {
     //conn.end();
 });
 
+conn.on("end", function () {
+    console.log("End:");
+});
+
+conn.on("close", function () {
+    console.log("Close:");
+});
+
 
