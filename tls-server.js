@@ -12,17 +12,6 @@ var tls = require('tls'),
     ].join("\n").cyan;
 
 
-/*
-var options = {
-    key: fs.readFileSync('server-key.pem'),
-    cert: fs.readFileSync('server-crt.pem'),
-    // This is necessary only if using the client certificate authentication.
-    requestCert: true,
-    // This is necessary only if the client uses the self-signed certificate.
-    ca: [ fs.readFileSync('client-crt-2.pem'),
-          fs.readFileSync('client-crt.pem') ]
-};
-*/
 var options = {
     key: fs.readFileSync('ssl/server.key'),
     cert: fs.readFileSync('ssl/server.crt'),
@@ -37,8 +26,6 @@ var options = {
             fs.readFileSync('ssl/ca2.crt')
         ]
 };
-
-
 
 tls.createServer(options, function (s) {
     console.log('server connected', s.authorized ? 'authorized' : 'unauthorized');
