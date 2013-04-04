@@ -23,12 +23,14 @@ var options = {
             fs.readFileSync('ssl/ca4.crt'),
             fs.readFileSync('ssl/root.crt'),
             fs.readFileSync('ssl/ca1.crt'),
-            fs.readFileSync('ssl/ca2.crt')
+            fs.readFileSync('ssl/ca2.crt'),
+//            fs.readFileSync('ssl/client.crt')
         ]
 };
 
 tls.createServer(options, function (s) {
     console.log('server connected', s.authorized ? 'authorized' : 'unauthorized');
+    //console.log(s.getPeerCertificate());
     s.write(msg + "\n");
     setInterval(function () {
         s.write("This is encrypted I hope!\n");
