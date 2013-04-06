@@ -11,9 +11,9 @@ var tls = require('tls'),
         ":_;:_;:_;   `.,`.,' `.__.':_;:_;:___.':___.':_;"
     ].join("\n").cyan;
 
-    var options = {
+var options = {
     ca: [ fs.readFileSync('keys/ca1-cert.pem')
-    ],
+        ],
     key: fs.readFileSync('keys/agent1-key.pem'),
     cert: fs.readFileSync('keys/agent1-cert.pem'),
     requestCert: true
