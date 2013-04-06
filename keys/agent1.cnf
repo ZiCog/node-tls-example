@@ -1,19 +1,19 @@
 [ req ]
-default_bits           = 1024
+default_bits           = 2048
 days                   = 999
 distinguished_name     = req_distinguished_name
 attributes             = req_attributes
 prompt                 = no
 
 [ req_distinguished_name ]
-C                      = US
-ST                     = CA
-L                      = SF
-O                      = Joyent
-OU                     = Node.js
+C                      = IE
+ST                     = Dublin.
+L                      = Dublin.
+O                      = RSM Ltd.
+OU                     = Toll
 CN                     = agent1
-emailAddress           = ry@tinyclouds.org
+emailAddress           = michael.rychlik@rsm.ie
 
 [ req_attributes ]
-challengePassword              = A challenge password
+challengePassword      = A challenge password
 

@@ -5,25 +5,6 @@ var tls = require('tls'),
 
 var hosterr = 'Hostname/IP doesn\'t match certificate\'s altnames';
 
-
-
-/*
-var options = {
-    key: fs.readFileSync('ssl/client.key'),
-    cert: fs.readFileSync('ssl/client.crt'),
-    rejectUnauthorized: false,
-/*    ca: [
-            fs.readFileSync('ssl/server.crt'),
-            fs.readFileSync('ssl/root.crt'),
-            fs.readFileSync('ssl/ca1.crt'),
-            fs.readFileSync('ssl/ca2.crt'),
-            fs.readFileSync('ssl/ca3.crt'),
-//            fs.readFileSync('ssl/ca4.crt')
-        ]
-* /
-};
-*/
-
 var options = {
     ca: [ fs.readFileSync('keys/ca1-cert.pem') ],
     key: fs.readFileSync('keys/agent2-key.pem'),
