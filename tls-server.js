@@ -35,7 +35,8 @@ tls.createServer(options, function (s) {
 // Test with:
 //  $ curl --cacert keys/ca1-cert.pem  https://agent1:8081/
 // Or if client authentication is required (requestCert:true)
-//  $ curl -v -s --key-type pem --key keys/agent2-key.pem --.pem --cacert keys/ca1-cert.pem https://agent1:8081
+//  $ curl -v -s --key-type pem --key keys/agent2-key.pem --cert keys/agent2-cert.pem --cacert keys/ca1-cert.pem https://agent1:8081
+
 var https = require('https');
 https.createServer(options, function (req, res) {
     if (req.client.authorized) {
