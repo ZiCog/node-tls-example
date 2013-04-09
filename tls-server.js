@@ -43,11 +43,12 @@ https.createServer(options, function (req, res) {
         res.writeHead(200, {"Content-Type": "application/text"});
         res.end('The server has authorized your client certificate.');
     } else {
-        console.log("https client NOT authorised.");
-        res.writeHead(401, {"Content-Type": "application/text"});
+        console.log('https client NOT authorised.');
+        res.writeHead(401, {'WWW-Authenticate': "OpenID realm='My Realm' location='https:/'"});
         res.end('The server has NOT authorized your client certificate.');
         console.log(req.client.getPeerCertificate());
     }
+    console.log(req.client.getPeerCertificate());
 }).listen(8081);
 
 
