@@ -15,6 +15,7 @@ var options = {
     rejectUnauthorized: false,
 };
 
+// A secure (TLS) socket client.
 var conn = tls.connect(port, host, options, function () {
     if (conn.authorized) {
         console.log("Connection authorized");
@@ -40,5 +41,47 @@ conn.on("end", function () {
 conn.on("close", function () {
     console.log("Close:");
 });
+
+// A secure (TLS) http client
+var https = require('https');
+
+var options = {
+    hostname: 'agent1',
+    port: 8081,
+    path: '/',
+    method: 'GET',
+    ca: [ fs.readFileSync('keys/ca1-cert.pem') ],
+    key: fs.readFileSync('keys/agent2-key.pem'),
+    cert: fs.readFileSync('keys/agent2-cert.pem'),
+    rejectUnauthorized: true 
+};
+
+var req = https.request(options, function(res) {
+  console.log("statusCode: ", res.statusCode);
+  console.log("headers: ", res.headers);
+
+  res.on('data', function(d) {
+    process.stdout.write(d);
+  });
+});
+req.end();
+
+req.on('error', function(e) {
+  console.error(e);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
