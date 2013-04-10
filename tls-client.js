@@ -9,9 +9,15 @@ var host = "agent1";
 var port = 8000;
 
 var options = {
-    ca: [ fs.readFileSync('keys/ca1-cert.pem') ],
-    key: fs.readFileSync('keys/agent2-key.pem'),
-    cert: fs.readFileSync('keys/agent2-cert.pem'),
+    ca: [
+          fs.readFileSync('ssl/root-cert.pem'),
+          fs.readFileSync('ssl/ca1-cert.pem'),
+          fs.readFileSync('ssl/ca2-cert.pem'),
+          fs.readFileSync('ssl/ca3-cert.pem'),
+          fs.readFileSync('ssl/ca4-cert.pem')
+        ],
+    key: fs.readFileSync('ssl/agent2-key.pem'),
+    cert: fs.readFileSync('ssl/agent2-cert.pem'),
     rejectUnauthorized: false,
 };
 
@@ -50,9 +56,15 @@ var options = {
     port: 8081,
     path: '/',
     method: 'GET',
-    ca: [ fs.readFileSync('keys/ca1-cert.pem') ],
-    key: fs.readFileSync('keys/agent2-key.pem'),
-    cert: fs.readFileSync('keys/agent2-cert.pem'),
+    ca: [
+          fs.readFileSync('ssl/root-cert.pem'),
+          fs.readFileSync('ssl/ca1-cert.pem'),
+          fs.readFileSync('ssl/ca2-cert.pem'),
+          fs.readFileSync('ssl/ca3-cert.pem'),
+          fs.readFileSync('ssl/ca4-cert.pem')
+        ],
+    key: fs.readFileSync('ssl/agent2-key.pem'),
+    cert: fs.readFileSync('ssl/agent2-cert.pem'),
     rejectUnauthorized: true 
 };
 

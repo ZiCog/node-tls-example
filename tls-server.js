@@ -12,10 +12,15 @@ var tls = require('tls'),
     ].join("\n").cyan;
 
 var options = {
-    ca: [ fs.readFileSync('keys/ca1-cert.pem')
+    ca: [
+          fs.readFileSync('ssl/root-cert.pem'),
+          fs.readFileSync('ssl/ca1-cert.pem'),
+          fs.readFileSync('ssl/ca2-cert.pem'),
+          fs.readFileSync('ssl/ca3-cert.pem'),
+          fs.readFileSync('ssl/ca4-cert.pem')
         ],
-    key: fs.readFileSync('keys/agent1-key.pem'),
-    cert: fs.readFileSync('keys/agent1-cert.pem'),
+    key: fs.readFileSync('ssl/agent1-key.pem'),
+    cert: fs.readFileSync('ssl/agent1-cert.pem'),
     requestCert: true 
 };
 
@@ -49,7 +54,7 @@ https.createServer(options, function (req, res) {
         res.end('The server has NOT authorized your client certificate.');
         console.log(req.client.getPeerCertificate());
     }
-    console.log(req.client.getPeerCertificate());
+    //console.log(req.client.getPeerCertificate());
 }).listen(8081);
 
 
