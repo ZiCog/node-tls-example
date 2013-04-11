@@ -75,7 +75,7 @@ var chat = io
         // Messages on a chat socket only go to that one chat connection
         socket.emit('chat message', 'Chat, chat..');
     // Messages on chat will go to every chat connection.
-    chat.emit('chat meesage', 'I every body!');
+    chat.emit('chat message', 'Hi every body!');
 });
 
 var news = io
