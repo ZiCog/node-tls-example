@@ -24,11 +24,11 @@ var options = {
 // A secure (TLS) socket client.
 var conn = tls.connect(port, host, options, function () {
     if (conn.authorized) {
-        console.log("Connection authorized");
+        console.log("TLS connection authorized");
     } else {
-        console.log("Connection not authorized: " + conn.authorizationError);
+        console.log("TLS connection not authorized: " + conn.authorizationError);
     }
-    //console.log(conn.getPeerCertificate());
+//    console.log(conn.getPeerCertificate());
 });
 
 conn.on("error", function (err) {
@@ -48,12 +48,12 @@ conn.on("close", function () {
     console.log("Close:");
 });
 
-// A secure (TLS) http client
+// A secure (TLS) https client
 var https = require('https');
 
 var options = {
     hostname: 'agent1',
-    port: 8081,
+    port: 8443,
     path: '/',
     method: 'GET',
     ca: [
@@ -73,22 +73,55 @@ var req = https.request(options, function(res) {
   console.log("headers: ", res.headers);
 
   res.on('data', function(d) {
-    process.stdout.write(d);
+      process.stdout.write(d);
   });
 });
 req.end();
 
 req.on('error', function(e) {
-  console.error(e);
+    console.error(e);
 });
 
 
+// A secure websocket client.
+https.globalAgent.options = {
+    ca: [
+          fs.readFileSync('ssl/root-cert.pem'),
+          fs.readFileSync('ssl/ca1-cert.pem'),
+          fs.readFileSync('ssl/ca2-cert.pem'),
+          fs.readFileSync('ssl/ca3-cert.pem'),
+          fs.readFileSync('ssl/ca4-cert.pem')
+        ],
+    key: fs.readFileSync('ssl/agent2-key.pem'),
+    cert: fs.readFileSync('ssl/agent2-cert.pem'),
+    rejectUnauthorized: true,
+};
 
+var io = require('socket.io-client');
+var chatUrl = 'https://agent1:8443/chat';
+var newsUrl = 'https://agent1:8443/news';
 
+var chat = io.connect(chatUrl, {secure: true});
+var news = io.connect(newsUrl, {secure: true});
 
+chat.on('connect', function () {
+    console.log('Chat connected');
+    chat.emit('hi!');
+});
 
+chat.on('chat message', function (data) {
+    console.log('Chat:', data);
+    chat.emit('hi!');
+});
+  
+news.on('connect', function () {
+    console.log('Chat connected');
+});
 
-
+news.on('item', function (data) {
+    console.log('news item:', data);
+    news.emit('woot');
+});
 
 
 

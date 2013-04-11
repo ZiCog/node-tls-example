@@ -1,0 +1,25 @@
+{
+  "name": "node-tls-example",
+  "version": "0.0.0",
+  "description": "Example TLS, HTTPS and websocket clients and servers. With SSL cert instructions.",
+  "main": "tls-client.js",
+  "dependencies": {
+    "colors": "~0.6.0-1",
+    "express": "~3.1.1",
+    "serialport": "~1.1.0",
+    "socket.io": "~0.9.14",
+    "socket.io-client": "~0.9.11"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZiCog/node-tls-example"
+  },
+  "author": "ZiCog",
+  "license": "BSD",
+  "private": true
+}
+

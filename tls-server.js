@@ -26,8 +26,10 @@ var options = {
 
 // A secure (TLS) socket server.
 tls.createServer(options, function (s) {
-    console.log("Authorized:", s.authorized);
-    console.log("Authorization error:", s.authorizationError);
+    console.log("TLS authorized:", s.authorized);
+    if (!s.authorized) {
+        console.log("TLS authorization error:", s.authorizationError);
+    }
     //console.log(s.getPeerCertificate());
     s.write(msg + "\n");
     setInterval(function () {
@@ -43,7 +45,13 @@ tls.createServer(options, function (s) {
 //  $ curl -v -s --key-type pem --key keys/agent2-key.pem --cert keys/agent2-cert.pem --cacert keys/ca1-cert.pem https://agent1:8081
 
 var https = require('https');
-https.createServer(options, function (req, res) {
+var express = require('express');
+var app = express();
+var server = https.createServer(options, app);
+
+server.listen(8443);
+
+app.get('/', function(req,res) {
     if (req.client.authorized) {
         console.log("https client authorised.");
         res.writeHead(200, {"Content-Type": "application/text"});
@@ -52,9 +60,34 @@ https.createServer(options, function (req, res) {
         console.log('https client NOT authorised.');
         res.writeHead(401, {'WWW-Authenticate': "OpenID realm='My Realm' location='https:/'"});
         res.end('The server has NOT authorized your client certificate.');
-        console.log(req.client.getPeerCertificate());
+        //console.log(req.client.getPeerCertificate());
     }
-    //console.log(req.client.getPeerCertificate());
-}).listen(8081);
+});
+
+// Secure web sockets
+var io = require('socket.io').listen(server);
+io.set('log level', 3);
+
+var chat = io
+    .of('/chat')
+    .on('connection', function (socket) {
+        console.log('chat socket open.');
+        // Messages on a chat socket only go to that one chat connection
+        socket.emit('chat message', 'Chat, chat..');
+    // Messages on chat will go to every chat connection.
+    chat.emit('chat meesage', 'I every body!');
+});
+
+var news = io
+    .of('/news')
+    .on('connection', function (socket) {
+        console.log('news socket open.');
+        socket.emit('item', 'Propeller II release iminent');
+});
+
+
+
+
+
 
 
