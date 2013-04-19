@@ -51,7 +51,23 @@ var server = https.createServer(options, app);
 
 server.listen(8443);
 
+app.use(express.logger());
+
+app.use(express.cookieParser());
+//app.use(express.cookieParser('some secret'));
+
+// Authenticator
+app.use(express.basicAuth(function(user, pass, callback) {
+    console.log("Login attempt:", user, pass);
+    var result = (user === 'michael' && pass === 'password');
+    callback(null /* error */, result);
+}));
+
 app.get('/', function(req,res) {
+        console.log(req.cookies);
+
+        res.cookie("myCookie", "777", { maxAge: 900000, httpOnly: true });
+/*
     if (req.client.authorized) {
         console.log("https client authorised.");
         res.writeHead(200, {"Content-Type": "application/text"});
@@ -62,6 +78,9 @@ app.get('/', function(req,res) {
         res.end('The server has NOT authorized your client certificate.');
         //console.log(req.client.getPeerCertificate());
     }
+*/
+        //res.writeHead(200, {"Content-Type": "application/text"});
+        res.end('Hello.');
 });
 
 // Secure web sockets
