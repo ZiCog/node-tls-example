@@ -33,13 +33,13 @@ it's quite easy:
 
 and run it:
 
-    $node  hello.js
+    $ node  hello.js
 
 That should work as expected.
 
 5) Check this example code:
 
-    $git clone https://github.com/ZiCog/node-tls-example.git
+    $ git clone https://github.com/ZiCog/node-tls-example.git
 
 You may have to install git first.
 
