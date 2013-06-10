@@ -75,8 +75,6 @@ being exchanged.
 10) You should be able to make an HTTPS connection from a browser on a different machine using the URL:
 
     https://192.168.0.67:8443/
-
-(Again the client machine will probably need to know that "agent1" host name.
  
 It takes a while to start up, most of that is loading node.js and the V8 engine from SD, once it is running it's
 quite fast enough. 
