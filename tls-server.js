@@ -59,7 +59,7 @@ app.use(express.cookieParser());
 // Authenticator
 app.use(express.basicAuth(function(user, pass, callback) {
     console.log("Login attempt:", user, pass);
-    var result = (user === 'michael' && pass === 'password');
+    var result = (user === 'admin' && pass === 'password');
     callback(null /* error */, result);
 }));
 
@@ -80,7 +80,7 @@ app.get('/', function(req,res) {
     }
 */
         //res.writeHead(200, {"Content-Type": "application/text"});
-        res.end('Hello.');
+        res.end('Hello from tls-server.js!');
 });
 
 // Secure web sockets
