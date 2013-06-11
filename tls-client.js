@@ -1,3 +1,14 @@
+//
+// tls-client.js
+//
+// Example of a Transport Layer Security (or TSL) client
+//
+// References:
+//    http://nodejs.org/api/tls.html
+//    http://docs.nodejitsu.com/articles/cryptography/how-to-use-the-tls-module
+//
+
+// Always use JavaScript strict mode. 
 "use strict";
 
 var tls = require('tls'),
@@ -5,10 +16,13 @@ var tls = require('tls'),
 
 var hosterr = 'Hostname/IP doesn\'t match certificate\'s altnames';
 
+// Hoest name and port of server to connect to.
 var host = "agent1";
 var port = 8000;
 
+
 var options = {
+    // A chain of certificate autorities
     ca: [
           fs.readFileSync('ssl/root-cert.pem'),
           fs.readFileSync('ssl/ca1-cert.pem'),
@@ -16,112 +30,57 @@ var options = {
           fs.readFileSync('ssl/ca3-cert.pem'),
           fs.readFileSync('ssl/ca4-cert.pem')
         ],
+    // Private key of the server
     key: fs.readFileSync('ssl/agent2-key.pem'),
+
     cert: fs.readFileSync('ssl/agent2-cert.pem'),
     rejectUnauthorized: false,
 };
 
 // A secure (TLS) socket client.
-var conn = tls.connect(port, host, options, function () {
-    if (conn.authorized) {
-        console.log("TLS connection authorized");
-    } else {
-        console.log("TLS connection not authorized: " + conn.authorizationError);
-    }
-//    console.log(conn.getPeerCertificate());
-});
+function TLSClient() {
+    var conn = tls.connect(port, host, options, function () {
+        if (conn.authorized) {
+            console.log("TLS connection authorized");
+        } else {
+            console.log("TLS connection not authorized: " + conn.authorizationError);
+        }
+        // Send initial message to server
+        conn.write("Hi!");
+    //    console.log(conn.getPeerCertificate());
+    });
 
-conn.on("error", function (err) {
-    console.log("Eeek:", err.toString());
-});
+    conn.on("error", function (err) {
+        console.log("Eeek:", err.toString());
+    });
 
-conn.on("data", function (data) {
-    console.log(data.toString());
-    //conn.end();
-});
+    conn.on("data", function (data) {
+        // Try to parse the message as JASON format
+        try {
+            var message = JSON.parse(data);
+            console.log("Date = ", message.date);
+            console.log("Lat  = ", message.latitude);
+            console.log("Lon  = ", message.longitude);
+        } catch (err) {
+            // Not valid JSON so just print it
+            console.log(data.toString());        
+        }
+    });
 
-conn.on("end", function () {
-    console.log("End:");
-});
+    conn.socket.on("end", function () {
+       console.log("End:");
+    });
+ 
+    conn.socket.on("close", function () {
+        console.log("Close:");
+        setTimeout(function () {
+            TLSClient();
+        }, 1000);
+    });
+}
 
-conn.on("close", function () {
-    console.log("Close:");
-});
+TLSClient();
 
-// A secure (TLS) https client
-var https = require('https');
-
-var options = {
-    hostname: 'agent1',
-    port: 8443,
-    path: '/',
-    method: 'GET',
-    ca: [
-          fs.readFileSync('ssl/root-cert.pem'),
-          fs.readFileSync('ssl/ca1-cert.pem'),
-          fs.readFileSync('ssl/ca2-cert.pem'),
-          fs.readFileSync('ssl/ca3-cert.pem'),
-          fs.readFileSync('ssl/ca4-cert.pem')
-        ],
-    key: fs.readFileSync('ssl/agent2-key.pem'),
-    cert: fs.readFileSync('ssl/agent2-cert.pem'),
-    rejectUnauthorized: true 
-};
-
-var req = https.request(options, function(res) {
-  console.log("statusCode: ", res.statusCode);
-  console.log("headers: ", res.headers);
-
-  res.on('data', function(d) {
-      process.stdout.write(d);
-  });
-});
-req.end();
-
-req.on('error', function(e) {
-    console.error(e);
-});
-
-
-// A secure websocket client.
-https.globalAgent.options = {
-    ca: [
-          fs.readFileSync('ssl/root-cert.pem'),
-          fs.readFileSync('ssl/ca1-cert.pem'),
-          fs.readFileSync('ssl/ca2-cert.pem'),
-          fs.readFileSync('ssl/ca3-cert.pem'),
-          fs.readFileSync('ssl/ca4-cert.pem')
-        ],
-    key: fs.readFileSync('ssl/agent2-key.pem'),
-    cert: fs.readFileSync('ssl/agent2-cert.pem'),
-    rejectUnauthorized: true,
-};
-
-var io = require('socket.io-client');
-var chatUrl = 'https://agent1:8443/chat';
-var newsUrl = 'https://agent1:8443/news';
-
-var chat = io.connect(chatUrl, {secure: true});
-var news = io.connect(newsUrl, {secure: true});
-
-chat.on('connect', function () {
-    console.log('Chat connected');
-    chat.emit('hi!');
-});
-
-chat.on('chat message', function (data) {
-    console.log('Chat:', data);
-    chat.emit('hi!');
-});
-  
-news.on('connect', function () {
-    console.log('Chat connected');
-});
-
-news.on('item', function (data) {
-    console.log('news item:', data);
-    news.emit('woot');
-});
 
 
 

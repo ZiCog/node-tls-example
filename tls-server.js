@@ -1,3 +1,14 @@
+//
+// tls-server.js
+//
+// Example of a Transport Layer Security (or TSL) server
+//
+// References:
+//    http://nodejs.org/api/tls.html
+//    http://docs.nodejitsu.com/articles/cryptography/how-to-use-the-tls-module
+//
+
+// Always use JavaScript strict mode. 
 "use strict";
 
 var tls = require('tls'),
@@ -24,86 +35,53 @@ var options = {
     requestCert: true 
 };
 
+
+// The data structure to be sent to connected clients
+var message = {
+    date : new Date(), 
+    latitude : 60.1708,
+    longitude : 24.9375
+};
+
+
 // A secure (TLS) socket server.
 tls.createServer(options, function (s) {
+    var intervalId;
+
     console.log("TLS authorized:", s.authorized);
     if (!s.authorized) {
         console.log("TLS authorization error:", s.authorizationError);
     }
     //console.log(s.getPeerCertificate());
     s.write(msg + "\n");
-    setInterval(function () {
+    intervalId = setInterval(function () {
         s.write("This is encrypted I hope!\n");
+        s.write(JSON.stringify(message));
     }, 1000);
-    s.pipe(s);
+
+    // Echo data incomming dats from stream back out to stream
+    //s.pipe(s);
+
+    s.on('data', function(data) {
+        console.log("Client says:", data.toString());
+    });
+
+    // Handle events on the underlying socket
+    s.socket.on("error", function (err) {
+        clearInterval(intervalId);
+        console.log("Eeek:", err.toString());
+    });
+
+    s.socket.on("end", function () {
+        clearInterval(intervalId);
+        console.log("End:");
+    });
+
+    s.socket.on("close", function () {
+        clearInterval(intervalId);
+        console.log("Close:");
+    });
 }).listen(8000);
-
-// A secure web server.
-// Test with:
-//  $ curl --cacert keys/ca1-cert.pem  https://agent1:8081/
-// Or if client authentication is required (requestCert:true)
-//  $ curl -v -s --key-type pem --key keys/agent2-key.pem --cert keys/agent2-cert.pem --cacert keys/ca1-cert.pem https://agent1:8081
-
-var https = require('https');
-var express = require('express');
-var app = express();
-var server = https.createServer(options, app);
-
-server.listen(8443);
-
-app.use(express.logger());
-
-app.use(express.cookieParser());
-//app.use(express.cookieParser('some secret'));
-
-// Authenticator
-app.use(express.basicAuth(function(user, pass, callback) {
-    console.log("Login attempt:", user, pass);
-    var result = (user === 'admin' && pass === 'password');
-    callback(null /* error */, result);
-}));
-
-app.get('/', function(req,res) {
-        console.log(req.cookies);
-
-        res.cookie("myCookie", "777", { maxAge: 900000, httpOnly: true });
-/*
-    if (req.client.authorized) {
-        console.log("https client authorised.");
-        res.writeHead(200, {"Content-Type": "application/text"});
-        res.end('The server has authorized your client certificate.');
-    } else {
-        console.log('https client NOT authorised.');
-        res.writeHead(401, {'WWW-Authenticate': "OpenID realm='My Realm' location='https:/'"});
-        res.end('The server has NOT authorized your client certificate.');
-        //console.log(req.client.getPeerCertificate());
-    }
-*/
-        //res.writeHead(200, {"Content-Type": "application/text"});
-        res.end('Hello from tls-server.js!');
-});
-
-// Secure web sockets
-var io = require('socket.io').listen(server);
-io.set('log level', 3);
-
-var chat = io
-    .of('/chat')
-    .on('connection', function (socket) {
-        console.log('chat socket open.');
-        // Messages on a chat socket only go to that one chat connection
-        socket.emit('chat message', 'Chat, chat..');
-    // Messages on chat will go to every chat connection.
-    chat.emit('chat message', 'Hi every body!');
-});
-
-var news = io
-    .of('/news')
-    .on('connection', function (socket) {
-        console.log('news socket open.');
-        socket.emit('item', 'Propeller II release iminent');
-});
-
 
 
 
