@@ -11,80 +11,138 @@
 // Always use JavaScript strict mode. 
 "use strict";
 
+// Modules required here
 var tls = require('tls'),
-    fs = require('fs');
-
-var hosterr = 'Hostname/IP doesn\'t match certificate\'s altnames';
-
-// Hoest name and port of server to connect to.
-var host = "agent1";
-var port = 8000;
+    fs = require('fs'),
+    util = require('util'),
+    events = require('events');
 
 
-var options = {
-    // A chain of certificate autorities
-    ca: [
-          fs.readFileSync('ssl/root-cert.pem'),
-          fs.readFileSync('ssl/ca1-cert.pem'),
-          fs.readFileSync('ssl/ca2-cert.pem'),
-          fs.readFileSync('ssl/ca3-cert.pem'),
-          fs.readFileSync('ssl/ca4-cert.pem')
-        ],
-    // Private key of the server
-    key: fs.readFileSync('ssl/agent2-key.pem'),
+// TLS Client object
+var TLSClient = function (host, port) {
 
-    cert: fs.readFileSync('ssl/agent2-cert.pem'),
-    rejectUnauthorized: false,
+    var options = {
+        // Chain of certificate autorities
+        // Client and server have these to authenticate keys 
+        ca: [
+              fs.readFileSync('ssl/root-cert.pem'),
+              fs.readFileSync('ssl/ca1-cert.pem'),
+              fs.readFileSync('ssl/ca2-cert.pem'),
+              fs.readFileSync('ssl/ca3-cert.pem'),
+              fs.readFileSync('ssl/ca4-cert.pem')
+            ],
+        // Private key of the client
+        key: fs.readFileSync('ssl/agent2-key.pem'),
+        // Public key of the client (certificate key)
+        cert: fs.readFileSync('ssl/agent2-cert.pem'),
+
+        // Automatically reject clients with invalide certificates.
+        rejectUnauthorized: false             // Set false to see what happens.
+    };
+
+    var self = this;
+    var TERM = '\uFFFD';
+
+    // Call the event emitter constructor.  
+    events.EventEmitter.call(this);
+
+    function connect() {
+        self.s = tls.connect(port, host, options, function () {
+            self.emit('connect', null);
+
+            self.fragment = '';
+            self.parseErrors = 0; 
+            console.log("TLS Server authorized:", self.s.authorized);
+            if (!self.s.authorized) {
+                console.log("TLS authorization error:", s.authorizationError);
+            }
+            // console.log(s.getPeerCertificate());
+        });
+
+        self.s.on("error", function (err) {
+            console.log("Eeek:", err.toString());
+        });
+
+        self.s.on("data", function (data) {
+            var info = data.toString().split(TERM);
+            info[0] = self.fragment + info[0];
+            self.fragment = '';
+
+            for ( var index = 0; index < info.length; index++) {
+                if (info[index]) {
+                    try {
+                        var message = JSON.parse(info[index]);
+                        self.emit('message', message);
+                    } catch (error) {
+                        self.fragment = info[index]; 
+                        continue;
+                    }
+                }
+            }
+        });
+
+        self.s.socket.on("end", function () {
+           console.log("End:");
+        });
+ 
+        self.s.socket.on("close", function () {
+            console.log("Close:");
+            self.emit('disconnect', null);
+
+            // Try to reconnect after a delay
+            setTimeout(function () {
+                // Use "apply" here as the timeout needs to
+                // know which objects "connect" to use
+                connect.apply(this);
+            }, 1000);
+        });
+    };
+
+    // Make the TLS connection 
+    connect();
 };
 
-// A secure (TLS) socket client.
-function TLSClient() {
-    var conn = tls.connect(port, host, options, function () {
-        if (conn.authorized) {
-            console.log("TLS connection authorized");
-        } else {
-            console.log("TLS connection not authorized: " + conn.authorizationError);
-        }
-        // Send initial message to server
-        conn.write("Hi!");
-    //    console.log(conn.getPeerCertificate());
-    });
+// TLSClient inherits EventEmitter 
+util.inherits(TLSClient, events.EventEmitter);
 
-    conn.on("error", function (err) {
-        console.log("Eeek:", err.toString());
-    });
-
-    conn.on("data", function (data) {
-        // Try to parse the message as JASON format
-        try {
-            var message = JSON.parse(data);
-            console.log("Date = ", message.date);
-            console.log("Lat  = ", message.latitude);
-            console.log("Lon  = ", message.longitude);
-        } catch (err) {
-            // Not valid JSON so just print it
-            console.log(data.toString());        
-        }
-    });
-
-    conn.socket.on("end", function () {
-       console.log("End:");
-    });
- 
-    conn.socket.on("close", function () {
-        console.log("Close:");
-        setTimeout(function () {
-            TLSClient();
-        }, 1000);
-    });
+TLSClient.prototype.write = function (message) {
+    if (this.s.writable) {
+        this.s.write(message);
+    }
 }
 
-TLSClient();
+module.exports = TLSClient;
 
+// Test Harness
+//-------------
+var c1 = new TLSClient('agent1', 8000);
+//var c2 = new TLSClient('agent1', 8000);
+//var c3 = new TLSClient('agent1', 8000);
+//var c4 = new TLSClient('agent1', 8000);
+//var c5 = new TLSClient('agent1', 8000);
 
+c1.on('connect', function (err) {
+    console.log('Client connected.');
+});
 
+c1.on('disconnect', function (err) {
+    console.log('Client disconnected');
+});
 
+var seqNo = 0;
+c1.on('message', function (message) {
+    console.log("Date = ", message.date);
+    console.log("Lat  = ", message.latitude);
+    console.log("Lon  = ", message.longitude);
+    console.log("Seq  = ", message.seqNo);
+    if (message.seqNo !== seqNo) {
+        console.log ("Sequence number error, expected: ", seqNo);
+        process.exit();
+    }
+    seqNo += 1;
+});
 
+console.log('STARTED');
 
 
 

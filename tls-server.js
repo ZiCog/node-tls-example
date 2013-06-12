@@ -11,9 +11,11 @@
 // Always use JavaScript strict mode. 
 "use strict";
 
+// Modules used here
 var tls = require('tls'),
     fs = require('fs'),
-    colors = require('colors'),
+    colors = require('colors');
+/*
     msg = [
         ".-..-..-.  .-.   .-. .--. .---. .-.   .---. .-.",
         ": :; :: :  : :.-.: :: ,. :: .; :: :   : .  :: :",
@@ -21,8 +23,13 @@ var tls = require('tls'),
         ": :: :: :  : `' `' ;: :; :: :.`.: :__ : :; ::_;",
         ":_;:_;:_;   `.,`.,' `.__.':_;:_;:___.':___.':_;"
     ].join("\n").cyan;
+*/
+
+var TERM = '\uFFFD';
 
 var options = {
+    // Chain of certificate autorities
+    // Client and server have these to authenticate keys 
     ca: [
           fs.readFileSync('ssl/root-cert.pem'),
           fs.readFileSync('ssl/ca1-cert.pem'),
@@ -30,9 +37,16 @@ var options = {
           fs.readFileSync('ssl/ca3-cert.pem'),
           fs.readFileSync('ssl/ca4-cert.pem')
         ],
+    // Private key of the server
     key: fs.readFileSync('ssl/agent1-key.pem'),
+    // Public key of the server (certificate key)
     cert: fs.readFileSync('ssl/agent1-cert.pem'),
-    requestCert: true 
+
+    // Request a certificate from a connecting client
+    requestCert: true, 
+
+    // Automatically reject clients with invalide certificates.
+    rejectUnauthorized: false             // Set false to see what happens.
 };
 
 
@@ -40,24 +54,33 @@ var options = {
 var message = {
     date : new Date(), 
     latitude : 60.1708,
-    longitude : 24.9375
+    longitude : 24.9375,
+    seqNo : 0
 };
-
 
 // A secure (TLS) socket server.
 tls.createServer(options, function (s) {
     var intervalId;
 
-    console.log("TLS authorized:", s.authorized);
+    console.log("TLS Client authorized:", s.authorized);
     if (!s.authorized) {
         console.log("TLS authorization error:", s.authorizationError);
     }
+
+    console.log("Cipher: ",  s.getCipher());
+    console.log("Address: ", s.address());
+    console.log("Remote address: ", s.remoteAddress);
+    console.log("Remote port: ", s.remotePort);
+
+    message.seqNo = 0;
     //console.log(s.getPeerCertificate());
-    s.write(msg + "\n");
     intervalId = setInterval(function () {
-        s.write("This is encrypted I hope!\n");
-        s.write(JSON.stringify(message));
-    }, 1000);
+        var ms = JSON.stringify(message) + TERM;
+        message.seqNo += 1;
+        ms += JSON.stringify(message) + TERM;
+        message.seqNo += 1;
+        s.write(ms);
+    }, 1);
 
     // Echo data incomming dats from stream back out to stream
     //s.pipe(s);
