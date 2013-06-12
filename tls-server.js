@@ -13,17 +13,7 @@
 
 // Modules used here
 var tls = require('tls'),
-    fs = require('fs'),
-    colors = require('colors');
-/*
-    msg = [
-        ".-..-..-.  .-.   .-. .--. .---. .-.   .---. .-.",
-        ": :; :: :  : :.-.: :: ,. :: .; :: :   : .  :: :",
-        ":    :: :  : :: :: :: :: ::   .': :   : :: :: :",
-        ": :: :: :  : `' `' ;: :; :: :.`.: :__ : :; ::_;",
-        ":_;:_;:_;   `.,`.,' `.__.':_;:_;:___.':___.':_;"
-    ].join("\n").cyan;
-*/
+    fs = require('fs');
 
 var TERM = '\uFFFD';
 
@@ -75,12 +65,14 @@ tls.createServer(options, function (s) {
     message.seqNo = 0;
     //console.log(s.getPeerCertificate());
     intervalId = setInterval(function () {
+        message.date = new Date();
         var ms = JSON.stringify(message) + TERM;
         message.seqNo += 1;
+        message.date = new Date();
         ms += JSON.stringify(message) + TERM;
         message.seqNo += 1;
         s.write(ms);
-    }, 1);
+    }, 100);
 
     // Echo data incomming dats from stream back out to stream
     //s.pipe(s);
