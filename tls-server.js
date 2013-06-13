@@ -42,7 +42,7 @@ var options = {
 
 // The data structure to be sent to connected clients
 var message = {
-    tag : 'Helsinki - \\u03C0\\uffd\\uffd\\uffd\\uffd\\uffd Pi(.)',
+    tag : 'Helsinki - \u03C0 Pi(.)' + String.fromCharCode(960),
     date : new Date(), 
     latitude : 60.1708,
     longitude : 24.9375,
