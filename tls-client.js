@@ -17,7 +17,6 @@ var tls = require('tls'),
     util = require('util'),
     events = require('events');
 
-
 // TLS Client object
 var TLSClient = function (host, port) {
 
@@ -41,32 +40,34 @@ var TLSClient = function (host, port) {
     };
 
     var self = this;
+
+    // Incoming JSON chunks are terminated with this.
     var TERM = '\uFFFD';
 
     // Call the event emitter constructor.  
     events.EventEmitter.call(this);
 
     function connect() {
-        self.s = tls.connect(port, host, options, function () {
+        var fragment = '';
+        var s;
+        s = tls.connect(port, host, options, function () {
             self.emit('connect', null);
 
-            self.fragment = '';
-            self.parseErrors = 0; 
-            console.log("TLS Server authorized:", self.s.authorized);
-            if (!self.s.authorized) {
+            console.log("TLS Server authorized:", s.authorized);
+            if (!s.authorized) {
                 console.log("TLS authorization error:", s.authorizationError);
             }
             // console.log(s.getPeerCertificate());
         });
 
-        self.s.on("error", function (err) {
+        s.on("error", function (err) {
             console.log("Eeek:", err.toString());
         });
 
-        self.s.on("data", function (data) {
+        s.on("data", function (data) {
             var info = data.toString().split(TERM);
-            info[0] = self.fragment + info[0];
-            self.fragment = '';
+            info[0] = fragment + info[0];
+            fragment = '';
 
             for ( var index = 0; index < info.length; index++) {
                 if (info[index]) {
@@ -74,18 +75,18 @@ var TLSClient = function (host, port) {
                         var message = JSON.parse(info[index]);
                         self.emit('message', message);
                     } catch (error) {
-                        self.fragment = info[index]; 
+                        fragment = info[index]; 
                         continue;
                     }
                 }
             }
         });
 
-        self.s.socket.on("end", function () {
+        s.socket.on("end", function () {
            console.log("End:");
         });
  
-        self.s.socket.on("close", function () {
+        s.socket.on("close", function () {
             console.log("Close:");
             self.emit('disconnect', null);
 
@@ -116,6 +117,8 @@ module.exports = TLSClient;
 // Test Harness
 //-------------
 var c1 = new TLSClient('agent1', 8000);
+
+
 //var c2 = new TLSClient('agent1', 8000);
 //var c3 = new TLSClient('agent1', 8000);
 //var c4 = new TLSClient('agent1', 8000);
@@ -131,6 +134,7 @@ c1.on('disconnect', function (err) {
 
 var seqNo = 0;
 c1.on('message', function (message) {
+    console.log("Tag = ", message.tag);
     console.log("Date = ", message.date);
     console.log("Lat  = ", message.latitude);
     console.log("Lon  = ", message.longitude);
