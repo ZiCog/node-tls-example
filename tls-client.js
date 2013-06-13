@@ -35,14 +35,14 @@ var TLSClient = function (host, port) {
         // Public key of the client (certificate key)
         cert: fs.readFileSync('ssl/agent2-cert.pem'),
 
-        // Automatically reject clients with invalide certificates.
+        // Automatically reject clients with invalid certificates.
         rejectUnauthorized: false             // Set false to see what happens.
     };
 
     var self = this;
 
-    // Incoming JSON chunks are terminated with this.
-    var TERM = '\uFFFD';
+    // Incoming JSON chunks are terminated with the Unicode replacement character.
+    this.TERM = '\uFFFD';
 
     // Call the event emitter constructor.  
     events.EventEmitter.call(this);
@@ -50,31 +50,36 @@ var TLSClient = function (host, port) {
     function connect() {
         var fragment = '';
         var s;
-        s = tls.connect(port, host, options, function () {
+        self.s = tls.connect(port, host, options, function () {
             self.emit('connect', null);
 
-            console.log("TLS Server authorized:", s.authorized);
-            if (!s.authorized) {
-                console.log("TLS authorization error:", s.authorizationError);
+            console.log("TLS Server authorized:", self.s.authorized);
+            if (!self.s.authorized) {
+                console.log("TLS authorization error:", self.s.authorizationError);
             }
             // console.log(s.getPeerCertificate());
         });
 
-        s.on("error", function (err) {
+        self.s.on("error", function (err) {
             console.log("Eeek:", err.toString());
         });
 
-        s.on("data", function (data) {
-            var info = data.toString().split(TERM);
+        self.s.on("data", function (data) {
+            // Split incoming data into messages around TERM
+            var info = data.toString().split(self.TERM);
+
+            // Add any previous trailing chars to the start of the first message
             info[0] = fragment + info[0];
             fragment = '';
 
+            // Parse all the messages into objects
             for ( var index = 0; index < info.length; index++) {
                 if (info[index]) {
                     try {
                         var message = JSON.parse(info[index]);
                         self.emit('message', message);
                     } catch (error) {
+                        // The last message may be cut short so save its chars for later.
                         fragment = info[index]; 
                         continue;
                     }
@@ -82,11 +87,11 @@ var TLSClient = function (host, port) {
             }
         });
 
-        s.socket.on("end", function () {
+        self.s.socket.on("end", function () {
            console.log("End:");
         });
  
-        s.socket.on("close", function () {
+        self.s.socket.on("close", function () {
             console.log("Close:");
             self.emit('disconnect', null);
 
@@ -108,45 +113,13 @@ util.inherits(TLSClient, events.EventEmitter);
 
 TLSClient.prototype.write = function (message) {
     if (this.s.writable) {
-        this.s.write(message);
+        var data = JSON.stringify(message) + this.TERM;
+        this.s.write(data);
     }
 }
 
 module.exports = TLSClient;
 
-// Test Harness
-//-------------
-var c1 = new TLSClient('agent1', 8000);
-
-
-//var c2 = new TLSClient('agent1', 8000);
-//var c3 = new TLSClient('agent1', 8000);
-//var c4 = new TLSClient('agent1', 8000);
-//var c5 = new TLSClient('agent1', 8000);
-
-c1.on('connect', function (err) {
-    console.log('Client connected.');
-});
-
-c1.on('disconnect', function (err) {
-    console.log('Client disconnected');
-});
-
-var seqNo = 0;
-c1.on('message', function (message) {
-    console.log("Tag = ", message.tag);
-    console.log("Date = ", message.date);
-    console.log("Lat  = ", message.latitude);
-    console.log("Lon  = ", message.longitude);
-    console.log("Seq  = ", message.seqNo);
-    if (message.seqNo !== seqNo) {
-        console.log ("Sequence number error, expected: ", seqNo);
-        process.exit();
-    }
-    seqNo += 1;
-});
-
-console.log('STARTED');
 
 
 

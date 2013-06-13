@@ -42,7 +42,7 @@ var options = {
 
 // The data structure to be sent to connected clients
 var message = {
-    tag : 'Helsinki - \u03C0 Pi(.)' + String.fromCharCode(960),
+    tag : 'Helsinki ' /* + String.fromCharCode(65533) */,
     date : new Date(), 
     latitude : 60.1708,
     longitude : 24.9375,
@@ -64,6 +64,9 @@ tls.createServer(options, function (s) {
     console.log("Remote port: ", s.remotePort);
 
     message.seqNo = 0;
+    var fragment = '';
+ 
+
     //console.log(s.getPeerCertificate());
     intervalId = setInterval(function () {
         message.date = new Date();
@@ -79,7 +82,29 @@ tls.createServer(options, function (s) {
     //s.pipe(s);
 
     s.on('data', function(data) {
-        console.log("Client says:", data.toString());
+        // Split incoming data into messages around TERM
+        var info = data.toString().split(TERM);
+
+        // Add any previous trailing chars to the start of the first message
+        info[0] = fragment + info[0];
+        fragment = '';
+
+        // Parse all the messages into objects
+        for ( var index = 0; index < info.length; index++) {
+            if (info[index]) {
+                try {
+                    var message = JSON.parse(info[index]);
+                   // self.emit('message', message);
+                   console.log(message.name);
+                   console.log(message.passwd);
+
+                } catch (error) {
+                    // The last message may be cut short so save its chars for later.
+                    fragment = info[index];
+                    continue;
+                }
+            }
+        }
     });
 
     // Handle events on the underlying socket
