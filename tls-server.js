@@ -105,16 +105,15 @@ tls.createServer(options, function (s) {
                 }
             }
         }
+//        s.socket.end();
     });
 
     // Handle events on the underlying socket
     s.socket.on("error", function (err) {
-        clearInterval(intervalId);
         console.log("Eeek:", err.toString());
     });
 
     s.socket.on("end", function () {
-        clearInterval(intervalId);
         console.log("End:");
     });
 

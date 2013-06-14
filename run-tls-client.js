@@ -27,8 +27,11 @@ var signOnMsg = {
         "passwd" : "password",
 }
 
+var seqNo = 0;
+
 c1.on('connect', function (err) {
     console.log('Client connected.');
+    seqNo = 0;
     setInterval(function () {
         c1.write (signOnMsg);
     }, 100);
@@ -38,7 +41,6 @@ c1.on('disconnect', function (err) {
     console.log('Client disconnected');
 });
 
-var seqNo = 0;
 c1.on('message', function (message) {
     console.log("Tag = ", message.tag);
     console.log("Date = ", message.date);
