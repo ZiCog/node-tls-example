@@ -47,7 +47,7 @@ var TLSClient = function (host, port) {
     // Call the event emitter constructor.  
     events.EventEmitter.call(this);
 
-    function connect() {
+    var connect = (function connect() {
         var fragment = '';
         var s;
         self.s = tls.connect(port, host, options, function () {
@@ -97,15 +97,10 @@ var TLSClient = function (host, port) {
 
             // Try to reconnect after a delay
             setTimeout(function () {
-                // Use "apply" here as the timeout needs to
-                // know which objects "connect" to use
-                connect.apply(this);
+                connect();
             }, 1000);
         });
-    };
-
-    // Make the TLS connection 
-    connect();
+    })();
 };
 
 // TLSClient inherits EventEmitter 
