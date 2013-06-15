@@ -67,10 +67,14 @@ This requirement can be relaxed if required later.
 
 9) Run the client part, from another terminal window or ssh session:
 
-    $ node tls-client.js
+    $ node run-tls-client.js
 
 You should see a bunch of message on the console indicating TLS and HTTPS has been authorized and some messages
 being exchanged.
+
+
+!!!!!!!!!!!!!!!!! HTTPS Example is broken for now !!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 10) You should be able to make an HTTPS connection from a browser on a different machine using the URL:
 
