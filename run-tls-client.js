@@ -51,6 +51,9 @@ c1.on('message', function (message) {
         console.log ("Sequence number error, expected: ", seqNo);
         process.exit();
     }
+    if ((message.seqNo % 100) === 0) {
+        console.log (process.memoryUsage());
+    }
     seqNo += 1;
 });
 
