@@ -62,7 +62,6 @@ tls.createServer(options, function (s) {
     console.log("Address: ", s.address());
     console.log("Remote address: ", s.remoteAddress);
     console.log("Remote port: ", s.remotePort);
-
     message.seqNo = 0;
     var fragment = '';
  
@@ -76,6 +75,10 @@ tls.createServer(options, function (s) {
         ms += JSON.stringify(message) + TERM;
         message.seqNo += 1;
         s.write(ms);
+        if ((message.seqNo % 100) === 0)
+        {
+            console.log(process.memoryUsage());
+        }
     }, 100);
 
     // Echo data incomming dats from stream back out to stream
@@ -94,10 +97,8 @@ tls.createServer(options, function (s) {
             if (info[index]) {
                 try {
                     var message = JSON.parse(info[index]);
-                   // self.emit('message', message);
-                   console.log(message.name);
-                   console.log(message.passwd);
-
+                    console.log(message.name);
+                    console.log(message.passwd);
                 } catch (error) {
                     // The last message may be cut short so save its chars for later.
                     fragment = info[index];
