@@ -14,7 +14,8 @@ var options = {
         ],
     key: fs.readFileSync('ssl/agent1-key.pem'),
     cert: fs.readFileSync('ssl/agent1-cert.pem'),
-    requestCert: true 
+    requestCert: true,
+    rejectUnauthorized: false 
 };
 
 // A secure web server.
@@ -33,18 +34,20 @@ app.use(express.logger());
 app.use(express.cookieParser());
 //app.use(express.cookieParser('some secret'));
 
+/*
 // Authenticator
 app.use(express.basicAuth(function(user, pass, callback) {
     console.log("Login attempt:", user, pass);
     var result = (user === 'admin' && pass === 'password');
-    callback(null /* error */, result);
+    callback(null /* error * /, result);
 }));
+*/
 
 app.get('/', function(req,res) {
-    console.log(req.cookies);
+    console.log("Got cookie: ", req.cookies);
 
     res.cookie("myCookie", "777", { maxAge: 900000, httpOnly: true });
-/*
+
     if (req.client.authorized) {
         console.log("https client authorised.");
         res.writeHead(200, {"Content-Type": "application/text"});
@@ -53,31 +56,11 @@ app.get('/', function(req,res) {
         console.log('https client NOT authorised.');
         res.writeHead(401, {'WWW-Authenticate': "OpenID realm='My Realm' location='https:/'"});
         res.end('The server has NOT authorized your client certificate.');
-        //console.log(req.client.getPeerCertificate());
+        console.log(req.client.getPeerCertificate());
     }
-*/
-    // Recursive definition of function fibonacci
-    function fibo(n) {
-        if (n == 0 || n == 1) {
-            // Base case
-            return n;
-        } else { 
-            return fibo(n - 1) + fibo(n - 2);
-        }                               
-    }
-
-    //res.writeHead(200, {"Content-Type": "application/text"});
-    var num = 40;
-    var t0 = new Date();
-    var result = fibo(num);
-    var t1 = new Date();
-    var elapsed = (t1 - t0) / 1000;
-    res.write("fibo(" + num + ") = " + result + "\n");
-    res.write("Took " + elapsed + " seconds.\n");
-    res.end('Hello from https-server.js!');
 });
 
-/*
+
 // Secure web sockets
 var io = require('socket.io').listen(server);
 io.set('log level', 3);
@@ -99,7 +82,7 @@ var news = io
         socket.emit('item', 'Propeller II release iminent');
 });
 
-*/
+
 
 
 
