@@ -110,15 +110,16 @@ tls.createServer(options, function (s) {
     });
 
     // Handle events on the underlying socket
-    s.socket.on("error", function (err) {
+    s.on("error", function (err) {
         console.log("Eeek:", err.toString());
     });
 
-    s.socket.on("end", function () {
+    s.on("end", function () {
         console.log("End:");
     });
 
-    s.socket.on("close", function () {
+    s.on("close", function () {
+
         clearInterval(intervalId);
         console.log("Close:");
     });

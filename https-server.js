@@ -3,6 +3,33 @@
 var fs = require('fs');
 var https = require('https');
 var express = require('express');
+var morgan = require('morgan');
+var cookieParser = require('cookie-parser');
+
+var basicAuth = require('basic-auth');
+
+var auth = function (req, res, next) {
+    function unauthorized(res) {
+        res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+        return res.sendStaus(401);
+    };
+
+    var user = basicAuth(req);
+
+    if (!user || !user.name || !user.pass) {
+        console.log('https client NOT authorised.');
+        return unauthorized(res);
+    };
+
+    if (user.name === 'foo' && user.pass === 'bar') {
+        console.log("https client authorised.");
+        return next();
+    } else {
+        console.log('https client NOT authorised.');
+        return unauthorized(res);
+    };
+};
+
 
 var options = {
     ca: [
@@ -29,20 +56,25 @@ var app = express();
 var server = https.createServer(options, app);
 server.listen(8443);
 
-app.use(express.logger());
+app.use(morgan('combined'));
 
-app.use(express.cookieParser());
-//app.use(express.cookieParser('some secret'));
+app.use(cookieParser());
 
 /*
 // Authenticator
 app.use(express.basicAuth(function(user, pass, callback) {
     console.log("Login attempt:", user, pass);
     var result = (user === 'admin' && pass === 'password');
-    callback(null /* error * /, result);
+    callback(null / * error * /, result);
 }));
 */
 
+
+app.get('/', auth, function (req, res) {
+    res.sendStatus(200, 'Authenticated');
+});
+
+/*
 app.get('/', function(req,res) {
     console.log("Got cookie: ", req.cookies);
 
@@ -59,7 +91,7 @@ app.get('/', function(req,res) {
         console.log(req.client.getPeerCertificate());
     }
 });
-
+*/
 
 // Secure web sockets
 var io = require('socket.io').listen(server);

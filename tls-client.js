@@ -87,11 +87,11 @@ var TLSClient = function (host, port) {
             }
         });
 
-        self.s.socket.on("end", function () {
+        self.s.on("end", function () {
            console.log("End:");
         });
  
-        self.s.socket.on("close", function () {
+        self.s.on("close", function () {
             console.log("Close:");
             self.emit('disconnect', null);
 
