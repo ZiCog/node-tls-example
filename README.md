@@ -11,23 +11,20 @@ Install and Test on a Raspery Pi
 Here are some instructions to run the TLS example clients and servers on the Pi, it seems quite long winded but
 it's quite easy:
 
-1) Install node. js and it's package manger on your Pi
+1) Install node. js Pi
 
-    $ sudo apt-get install nodejs
-    $ sudo apt-get install npm
+A convenient way to do this is to use the node version manager, NVM, see instructions here:
+https://github.com/creationix/nvm
 
 2) Test it:
 
     $node.js -v
-    v0.12.0
+    v4.3.1
     $
 
-3) Raspian sets it up with the wrong name, normally we like to have the command "node" so create this with a
-   symbolic link:
+Node v4.3.1 is the latest release this has been tested against
 
-    $ sudo ln -s /usr/bin/nodejs /usr/bin/node
-
-4) Hello world. Create a file "hello.js" containing the single line;
+3) Hello world. Create a file "hello.js" containing the single line;
 
     console.log ("Hello world!");
 
@@ -46,6 +43,9 @@ You may have to install git first.
 6) Move to the directory that created and install:
 
     $ cd node-tls-example/
+
+7) Install the required node modules.
+
     $ npm install
 
 
