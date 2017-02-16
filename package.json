@@ -10,11 +10,14 @@
     "morgan": "^1.7.0",
     "mqtt": "^1.7.2",
     "socket.io": "^1.4.5",
-    "socket.io-client": "^1.4.5"
+    "socket.io-client": "^1.4.5",
+    "snyk": "^1.25.0"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -22,5 +25,6 @@
   },
   "author": "ZiCog",
   "license": "BSD",
-  "private": true
+  "private": true,
+  "snyk": true
 }
